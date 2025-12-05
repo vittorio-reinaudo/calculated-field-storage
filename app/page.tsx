@@ -1,12 +1,57 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ExpenseList } from "./components/ExpenseList"
-import { GrandTotals } from "./components/GrandTotals"
-import { ExpenseDetailPanel } from "./components/ExpenseDetailPanel"
+import { useEffect, useState } from "react";
+import { observer } from "mobx-react-lite";
+import { expenseStore } from "./store/ExpenseStore";
+import { ExpenseList } from "./components/ExpenseList";
+import { GrandTotals } from "./components/GrandTotals";
+import { ExpenseDetailPanel } from "./components/ExpenseDetailPanel";
 
-export default function FinancialPlanningDashboard() {
-  const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null)
+const FinancialPlanningDashboard = observer(() => {
+  const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    // Carica le spese all'avvio
+    expenseStore.loadExpenses();
+  }, []);
+
+  if (expenseStore.isLoading) {
+    return (
+      <div className="min-h-screen bg-[#e8f0e8] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-6xl mb-4">⏳</div>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Caricamento in corso...
+          </h2>
+          <p className="text-gray-600 mt-2">
+            Recupero delle spese dal server
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (expenseStore.error) {
+    return (
+      <div className="min-h-screen bg-[#e8f0e8] flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-xl shadow-lg border-2 border-red-300">
+          <div className="text-6xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">
+            Errore di caricamento
+          </h2>
+          <p className="text-gray-700 mb-4">{expenseStore.error}</p>
+          <button
+            onClick={() => expenseStore.loadExpenses()}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+          >
+            Riprova
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#e8f0e8]">
@@ -32,5 +77,7 @@ export default function FinancialPlanningDashboard() {
         </div>
       </main>
     </div>
-  )
-}
+  );
+});
+
+export default FinancialPlanningDashboard;
